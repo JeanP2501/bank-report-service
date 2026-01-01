@@ -1,0 +1,174 @@
+openapi: 3.0.3
+info:
+  title: Report Service API
+  description: API for generating transaction reports and analytics
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8086
+    description: Local development server
+
+paths:
+  /api/reports/daily-avg:
+    get:
+      summary: Get daily average balance
+      description: Calculate the daily average balance for a customer in a specific period
+      operationId: getDailyAverage
+      tags:
+        - Reports
+      parameters:
+        - name: customerId
+          in: query
+          required: true
+          description: Customer identifier
+          schema:
+            type: string
+            example: "CUST001"
+        - name: period
+          in: query
+          required: true
+          description: Period in format yyyyMM
+          schema:
+            type: string
+            pattern: '^\d{6}$'
+            example: "202512"
+      responses:
+        '200':
+          description: Daily average calculated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyAvgResponse'
+              examples:
+                success:
+                  value:
+                    accountId: "69409212022d8e3298e1072f"
+                    avgDaily: 4800.00
+        '404':
+          description: No transactions found for the given parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/reports/commissions:
+    get:
+      summary: Get average commissions
+      description: Calculate the average commission for a customer in a specific period
+      operationId: getAverageCommissions
+      tags:
+        - Reports
+      parameters:
+        - name: customerId
+          in: query
+          required: true
+          description: Customer identifier
+          schema:
+            type: string
+            example: "CUST001"
+        - name: period
+          in: query
+          required: true
+          description: Period in format yyyyMM
+          schema:
+            type: string
+            pattern: '^\d{6}$'
+            example: "202512"
+      responses:
+        '200':
+          description: Average commission calculated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommissionAvgResponse'
+              examples:
+                success:
+                  value:
+                    accountId: "69409212022d8e3298e1072f"
+                    avgCommissions: 12.50
+        '404':
+          description: No transactions with commissions found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    DailyAvgResponse:
+      type: object
+      required:
+        - accountId
+        - avgDaily
+      properties:
+        accountId:
+          type: string
+          description: Account identifier
+          example: "69409212022d8e3298e1072f"
+        avgDaily:
+          type: number
+          format: double
+          description: Daily average balance
+          example: 4800.00
+          minimum: 0
+
+    CommissionAvgResponse:
+      type: object
+      required:
+        - accountId
+        - avgCommissions
+      properties:
+        accountId:
+          type: string
+          description: Account identifier
+          example: "69409212022d8e3298e1072f"
+        avgCommissions:
+          type: number
+          format: double
+          description: Average commission amount
+          example: 12.50
+          minimum: 0
+
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-12-29T10:30:00Z"
+        status:
+          type: integer
+          example: 404
+        error:
+          type: string
+          example: "Not Found"
+        message:
+          type: string
+          example: "No transactions found for customer in period"
+        path:
+          type: string
+          example: "/api/reports/daily-avg"
