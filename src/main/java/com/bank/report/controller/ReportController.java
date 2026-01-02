@@ -2,8 +2,12 @@ package com.bank.report.controller;
 
 import com.bank.report.api.ReportsApi;
 import com.bank.report.model.CommissionAvgResponse;
+import com.bank.report.model.CustomerProductsResponse;
 import com.bank.report.model.DailyAvgResponse;
+import com.bank.report.service.CustomerProductsService;
 import com.bank.report.service.ReportService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +22,7 @@ import reactor.core.publisher.Mono;
 public class ReportController implements ReportsApi {
 
     private final ReportService reportService;
+    private final CustomerProductsService customerProductsService;
 
     @Override
     public Mono<ResponseEntity<CommissionAvgResponse>> getAverageCommissions(
@@ -40,6 +45,19 @@ public class ReportController implements ReportsApi {
         return reportService.calculateDailyAverage(customerId, period)
                 .map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @Override
+    public Mono<ResponseEntity<CustomerProductsResponse>> getCustomerProducts(
+            String customerId,
+            ServerWebExchange exchange
+    ) {
+        log.info("Received request for customer products - customerId: {}", customerId);
+
+        return customerProductsService.getCustomerProducts(customerId)
+                .map(ResponseEntity::ok)
+                .doOnSuccess(response -> log.info("Customer products retrieved successfully"))
+                .doOnError(error -> log.error("Error retrieving customer products", error));
     }
 
 }

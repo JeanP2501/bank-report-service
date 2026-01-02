@@ -39,13 +39,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DailyAvgResponse'
-              examples:
-                success:
-                  value:
-                    accountId: "69409212022d8e3298e1072f"
-                    avgDaily: 4800.00
         '404':
-          description: No transactions found for the given parameters
+          description: No transactions found
           content:
             application/json:
               schema:
@@ -93,11 +88,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CommissionAvgResponse'
-              examples:
-                success:
-                  value:
-                    accountId: "69409212022d8e3298e1072f"
-                    avgCommissions: 12.50
         '404':
           description: No transactions with commissions found
           content:
@@ -106,6 +96,41 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '400':
           description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/reports/customer-products/{customerId}:
+    get:
+      summary: Get all products for a customer
+      description: Retrieve consolidated information about all products (accounts, credits, debit cards) for a specific customer
+      operationId: getCustomerProducts
+      tags:
+        - Reports
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          description: Customer identifier
+          schema:
+            type: string
+            example: "CUST001"
+      responses:
+        '200':
+          description: Customer products retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerProductsResponse'
+        '400':
+          description: Invalid customer ID
           content:
             application/json:
               schema:
@@ -152,6 +177,205 @@ components:
           description: Average commission amount
           example: 12.50
           minimum: 0
+
+    CustomerProductsResponse:
+      type: object
+      required:
+        - customerId
+        - hasProducts
+        - accounts
+        - credits
+        - debitCards
+        - summary
+      properties:
+        customerId:
+          type: string
+          description: Customer identifier
+          example: "CUST001"
+        hasProducts:
+          type: boolean
+          description: Indicates if customer has any products
+          example: true
+        accounts:
+          type: array
+          description: List of customer accounts
+          items:
+            $ref: '#/components/schemas/AccountSummary'
+        credits:
+          type: array
+          description: List of customer credits
+          items:
+            $ref: '#/components/schemas/CreditSummary'
+        debitCards:
+          type: array
+          description: List of customer debit cards
+          items:
+            $ref: '#/components/schemas/DebitCardSummary'
+        summary:
+          $ref: '#/components/schemas/ProductsSummary'
+
+    AccountSummary:
+      type: object
+      required:
+        - id
+        - accountNumber
+        - accountType
+        - balance
+        - active
+      properties:
+        id:
+          type: string
+          description: Account identifier
+          example: "69409212022d8e3298e1072f"
+        accountNumber:
+          type: string
+          description: Account number
+          example: "1234567890"
+        accountType:
+          type: string
+          description: Type of account
+          enum:
+            - SAVING
+            - CHECKING
+            - FIXED_TERM
+          example: "SAVING"
+        balance:
+          type: number
+          format: double
+          description: Current balance
+          example: 5000.00
+        maintenanceFee:
+          type: number
+          format: double
+          description: Monthly maintenance fee
+          example: 10.00
+        active:
+          type: boolean
+          description: Account status
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation date
+          example: "2025-01-01T10:00:00Z"
+
+    CreditSummary:
+      type: object
+      required:
+        - id
+        - creditNumber
+        - creditType
+        - creditLimit
+        - availableCredit
+        - active
+      properties:
+        id:
+          type: string
+          description: Credit identifier
+          example: "69409212022d8e3298e1073f"
+        creditNumber:
+          type: string
+          description: Credit number
+          example: "CC-9876543210"
+        creditType:
+          type: string
+          description: Type of credit
+          enum:
+            - PERSONAL
+            - BUSINESS
+            - CREDIT_CARD
+            - BUSINESS_LOAN
+            - PERSONAL_LOAN
+          example: "CREDIT_CARD"
+        creditLimit:
+          type: number
+          format: double
+          description: Credit limit
+          example: 10000.00
+        balance:
+          type: number
+          format: double
+          description: Current debt balance
+          example: 2500.00
+        availableCredit:
+          type: number
+          format: double
+          description: Available credit
+          example: 7500.00
+        interestRate:
+          type: number
+          format: double
+          description: Interest rate
+          example: 18.5
+        active:
+          type: boolean
+          description: Credit status
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation date
+          example: "2025-01-01T10:00:00Z"
+
+    DebitCardSummary:
+      type: object
+      required:
+        - id
+        - cardNumber
+        - primaryAccountId
+        - associatedAccountsCount
+        - active
+      properties:
+        id:
+          type: string
+          description: Debit card identifier
+          example: "69409212022d8e3298e1074f"
+        cardNumber:
+          type: string
+          description: Masked card number
+          example: "****1234"
+        primaryAccountId:
+          type: string
+          description: Primary account linked to the card
+          example: "69409212022d8e3298e1072f"
+        associatedAccountsCount:
+          type: integer
+          description: Number of associated accounts
+          example: 2
+        active:
+          type: boolean
+          description: Card status
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation date
+          example: "2025-01-01T10:00:00Z"
+
+    ProductsSummary:
+      type: object
+      required:
+        - totalAccounts
+        - totalCredits
+        - totalDebitCards
+        - totalProducts
+      properties:
+        totalAccounts:
+          type: integer
+          description: Total number of accounts
+          example: 1
+        totalCredits:
+          type: integer
+          description: Total number of credits
+          example: 1
+        totalDebitCards:
+          type: integer
+          description: Total number of debit cards
+          example: 1
+        totalProducts:
+          type: integer
+          description: Total number of products
+          example: 3
 
     ErrorResponse:
       type: object
