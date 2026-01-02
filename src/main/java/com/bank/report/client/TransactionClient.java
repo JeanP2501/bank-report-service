@@ -44,4 +44,27 @@ public class TransactionClient {
                 .doOnComplete(() -> log.info("Completed fetching transactions for customer {}", customerId));
     }
 
+    /**
+     * Obtiene todas las transacciones de un cliente
+     * GET /api/transactions/customer/{customerId}
+     */
+    public Flux<TransactionResponse> getTransactionsByCustomer(String customerId) {
+        log.debug("Calling Transaction Service: GET /api/transactions/customer/{}", customerId);
+
+        return webClient
+                .get()
+                .uri("/api/transactions/customer/{customerId}", customerId)
+                .retrieve()
+                .bodyToFlux(TransactionResponse.class)
+                .timeout(Duration.ofSeconds(5))
+                .doOnNext(transaction -> log.debug("Transaction found: {}", transaction.getId()))
+                .doOnError(ex -> {
+                    log.error("Error calling Transaction Service for customer {}: {}", customerId, ex.getMessage());
+                })
+                .onErrorResume(error -> {
+                    log.warn("Returning empty list due to error: {}", error.getMessage());
+                    return Flux.empty();
+                });
+    }
+
 }

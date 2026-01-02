@@ -142,6 +142,41 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /api/reports/customer-products-transactions/{customerId}:
+    get:
+      summary: Get customer products with their transactions
+      description: Retrieve all products with their completed transactions for a specific customer
+      operationId: getCustomerProductsWithTransactions
+      tags:
+        - Reports
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          description: Customer identifier
+          schema:
+            type: string
+            example: "693e644fbb761350f3b95207"
+      responses:
+        '200':
+          description: Customer products with transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerProductsTransactionsResponse'
+        '400':
+          description: Invalid customer ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
     DailyAvgResponse:
@@ -376,6 +411,213 @@ components:
           type: integer
           description: Total number of products
           example: 3
+
+    CustomerProductsTransactionsResponse:
+      type: object
+      required:
+        - customerId
+        - hasProducts
+        - accounts
+        - credits
+        - debitCards
+        - summary
+      properties:
+        customerId:
+          type: string
+          description: Customer identifier
+          example: "693e644fbb761350f3b95207"
+        hasProducts:
+          type: boolean
+          description: Indicates if customer has any products
+          example: true
+        accounts:
+          type: array
+          description: List of customer accounts with transactions
+          items:
+            $ref: '#/components/schemas/AccountWithTransactions'
+        credits:
+          type: array
+          description: List of customer credits with transactions
+          items:
+            $ref: '#/components/schemas/CreditWithTransactions'
+        debitCards:
+          type: array
+          description: List of customer debit cards
+          items:
+            $ref: '#/components/schemas/DebitCardSummary'
+        summary:
+          $ref: '#/components/schemas/ProductsTransactionsSummary'
+
+    AccountWithTransactions:
+      type: object
+      required:
+        - id
+        - accountNumber
+        - accountType
+        - balance
+        - active
+        - transactions
+      properties:
+        id:
+          type: string
+          example: "693f39edcbfd0c23a40df3df"
+        accountNumber:
+          type: string
+          example: "ACC-34FF9D932E"
+        accountType:
+          type: string
+          enum:
+            - SAVING
+            - CHECKING
+            - FIXED_TERM
+          example: "SAVING"
+        balance:
+          type: number
+          format: double
+          example: 856.0
+        maintenanceFee:
+          type: number
+          format: double
+          example: 0.0
+        active:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-12-14T17:27:57.332Z"
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TransactionSummary'
+
+    CreditWithTransactions:
+      type: object
+      required:
+        - id
+        - creditNumber
+        - creditType
+        - creditLimit
+        - availableCredit
+        - active
+        - transactions
+      properties:
+        id:
+          type: string
+          example: "693f558877f37725ff2d903f"
+        creditNumber:
+          type: string
+          example: "CRD-BE9059E434"
+        creditType:
+          type: string
+          enum:
+            - PERSONAL
+            - BUSINESS
+            - CREDIT_CARD
+            - PERSONAL_LOAN
+            - BUSINESS_LOAN
+          example: "PERSONAL_LOAN"
+        creditLimit:
+          type: number
+          format: double
+          example: 10000.0
+        balance:
+          type: number
+          format: double
+          example: 0.0
+        availableCredit:
+          type: number
+          format: double
+          example: 10000.0
+        interestRate:
+          type: number
+          format: double
+          example: 5.5
+        active:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-12-14T19:25:44.466Z"
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TransactionSummary'
+
+    TransactionSummary:
+      type: object
+      required:
+        - id
+        - transactionType
+        - amount
+        - status
+        - createdAt
+      properties:
+        id:
+          type: string
+          example: "trans001"
+        transactionType:
+          type: string
+          example: "DEPOSIT"
+        amount:
+          type: number
+          format: double
+          example: 500.0
+        status:
+          type: string
+          example: "COMPLETED"
+        description:
+          type: string
+          example: "Deposit to savings account"
+        balanceAfter:
+          type: number
+          format: double
+          example: 1500.0
+        commission:
+          type: number
+          format: double
+          example: 2.0
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-12-14T10:30:00Z"
+        period:
+          type: string
+          example: "202512"
+
+    ProductsTransactionsSummary:
+      type: object
+      required:
+        - totalAccounts
+        - totalCredits
+        - totalDebitCards
+        - totalProducts
+        - totalTransactions
+        - totalAccountTransactions
+        - totalCreditTransactions
+      properties:
+        totalAccounts:
+          type: integer
+          example: 2
+        totalCredits:
+          type: integer
+          example: 2
+        totalDebitCards:
+          type: integer
+          example: 1
+        totalProducts:
+          type: integer
+          example: 5
+        totalTransactions:
+          type: integer
+          example: 45
+        totalAccountTransactions:
+          type: integer
+          example: 30
+        totalCreditTransactions:
+          type: integer
+          example: 15
 
     ErrorResponse:
       type: object
