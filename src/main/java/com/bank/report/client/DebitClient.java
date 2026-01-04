@@ -42,5 +42,25 @@ public class DebitClient {
                         });
     }
 
+    public Mono<DebitResponse> getDebitById(String id) {
+        log.debug("Calling Debit Service to get debit card with id: {}", id);
+
+        return webClient
+                .get()
+                .uri("/api/debit-cards/{id}", id)
+                .retrieve()
+                .onStatus(
+                        status -> status.value() == 404,
+                        response -> Mono.error(new CreditNotFoundException(id)))
+                .bodyToMono(DebitResponse.class)
+                .timeout(Duration.ofSeconds(2))
+                .doOnSuccess(credit -> log.debug("Debit found: {}", credit.getId()))
+                .doOnError(
+                        ex -> {
+                            log.error(
+                                    "Error calling Debit Service for DebitId {}: {}", id, ex.getMessage());
+                        });
+    }
+
 
 }

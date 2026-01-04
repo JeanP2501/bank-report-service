@@ -1,12 +1,10 @@
 package com.bank.report.controller;
 
 import com.bank.report.api.ReportsApi;
-import com.bank.report.model.CommissionAvgResponse;
-import com.bank.report.model.CustomerProductsResponse;
-import com.bank.report.model.CustomerProductsTransactionsResponse;
-import com.bank.report.model.DailyAvgResponse;
+import com.bank.report.model.*;
 import com.bank.report.service.CustomerProductsService;
 import com.bank.report.service.CustomerProductsTransactionsService;
+import com.bank.report.service.DebitPrimaryAccountBalanceService;
 import com.bank.report.service.ReportService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -26,6 +24,7 @@ public class ReportController implements ReportsApi {
     private final ReportService reportService;
     private final CustomerProductsService customerProductsService;
     private final CustomerProductsTransactionsService customerProductsTransactionsService;
+    private final DebitPrimaryAccountBalanceService debitPrimaryAccountBalanceService;
 
     @Override
     public Mono<ResponseEntity<CommissionAvgResponse>> getAverageCommissions(
@@ -74,6 +73,19 @@ public class ReportController implements ReportsApi {
                 .map(ResponseEntity::ok)
                 .doOnSuccess(response -> log.info("Customer products with transactions retrieved successfully"))
                 .doOnError(error -> log.error("Error retrieving customer products with transactions", error));
+    }
+
+    @Override
+    public Mono<ResponseEntity<DebitPrimaryAccountBalanceResponse>> getDebitPrimaryAccountBalance(
+            String debitId,
+            ServerWebExchange exchange
+    ) {
+        log.info("Received request for debit primary account balance - debitId: {}", debitId);
+
+        return debitPrimaryAccountBalanceService.getPrimaryAccountBalance(debitId)
+                .map(ResponseEntity::ok)
+                .doOnSuccess(response -> log.info("Debit primary account balance retrieved successfully"))
+                .doOnError(error -> log.error("Error retrieving debit primary account balance", error));
     }
 
 }

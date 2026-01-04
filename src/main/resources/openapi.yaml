@@ -177,8 +177,79 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /api/reports/debit-primary-account-balance/{debitId}:
+    get:
+      summary: Get primary account balance from debit card
+      description: Retrieve the balance of the primary account associated with a debit card
+      operationId: getDebitPrimaryAccountBalance
+      tags:
+        - Reports
+      parameters:
+        - name: debitId
+          in: path
+          required: true
+          description: Debit card identifier
+          schema:
+            type: string
+            example: "693e644fbb761350f3b95207"
+      responses:
+        '200':
+          description: Primary account balance retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebitPrimaryAccountBalanceResponse'
+        '404':
+          description: Debit card or account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
+    DebitPrimaryAccountBalanceResponse:
+      type: object
+      required:
+        - debitId
+        - accountId
+        - accountNumber
+        - balance
+      properties:
+        debitId:
+          type: string
+          description: Debit card identifier
+          example: "693e644fbb761350f3b95207"
+        accountId:
+          type: string
+          description: Primary account identifier
+          example: "693f39edcbfd0c23a40df3df"
+        accountNumber:
+          type: string
+          description: Primary account number
+          example: "ACC-34FF9D932E"
+        accountType:
+          type: string
+          description: Type of account
+          example: "SAVING"
+        balance:
+          type: number
+          format: double
+          description: Current balance of primary account
+          example: 856.00
+        cardNumber:
+          type: string
+          description: Masked debit card number
+          example: "****-****-****-1346"
+        active:
+          type: boolean
+          description: Account status
+          example: true
     DailyAvgResponse:
       type: object
       required:
